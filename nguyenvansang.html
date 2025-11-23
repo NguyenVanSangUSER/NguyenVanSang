@@ -1,6 +1,24 @@
 <!DOCTYPE html>
 <html lang="vi">
+    <style type='text/css'>
+body{
+-webkit-touch-callout: none;
+-webkit-user-select: none;
+-moz-user-select: none;
+-ms-user-select: none;
+-o-user-select: none;
+user-select: none;
+}
+</style>
+<script type='text/javascript'>
+//<![CDATA[
+// JavaScript Document
+var message="NoRightClicking"; function defeatIE() {if (document.all) {(message);return false;}} function defeatNS(e) {if (document.layers||(document.getElementById&&!document.all)) { if (e.which==2||e.which==3) {(message);return false;}}} if (document.layers) {document.captureEvents(Event.MOUSEDOWN);document.onmousedown=defeatNS;} else{document.onmouseup=defeatNS;document.oncontextmenu=defeatIE;} document.oncontextmenu=new Function("return false")
+//]]>
+</script>
+
 <head>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
     <style>
@@ -400,7 +418,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Nguyễn Văn Sang</title> 
 </head>
-<body>
+<script type='text/javascript'>
+    let checkCtrl = false;
+
+    $('html').keydown(function(e) {
+        if (e.keyCode == 17) {  // phím Ctrl
+            checkCtrl = true;
+        }
+    }).keyup(function(e) {
+        if (e.keyCode == 17) {
+            checkCtrl = false;
+        }
+    }).keydown(function(event) {
+        if (checkCtrl && event.keyCode == 85) { // U
+            return false; // chặn Ctrl + U
+        }
+    });
+</script>
+
+<body onkeydown="return false">
     
     <div class="view-counter">
         <script type="text/javascript" src="https://www.free-counters.org/count/iz0w"></script>
