@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Lyric Player</title>
+<style>
+body { background:#000; color:#fff; font-family:Arial; }
+#lyrics { white-space:pre-line; font-size:20px; line-height:1.6; padding:20px; }
+.highlight { color: #00eaff; font-weight: bold; }
+</style>
+</head>
+<body>
+
+<h2>Trình phát nhạc + Lyric chạy theo nhạc</h2>
+
+<audio id="player" controls>
+  <source src="music.mp3" type="audio/mpeg">
+</audio>
+
+<div id="lyrics"></div>
+
+<script>
+const lyricsData = [
+    { time: 0, text: "Lala lala lala" },
+    { time: 5, text: "Hình bóng ai đó nhẹ nhàng vụt qua nơi đây" },
+    { time: 10, text: "Quyến rũ ngây ngất loạn nhịp làm tim mê say" },
+    { time: 15, text: "Cuốn lấy áng mây theo cơn sóng xô dập dìu" },
+    { time: 20, text: "Nụ cười ngọt ngào cho ta tan vào phút giây miên man" }
+];
+
+const lyrBox = document.getElementById("lyrics");
+const audio = document.getElementById("player");
+
+function renderLyrics() {
+    lyrBox.innerHTML = "";
+    lyricsData.forEach((line, i) => {
+        const p = document.createElement("div");
+        p.id = "line" + i;
+        p.textContent = line.text;
+        lyrBox.appendChild(p);
+    });
+}
+
+renderLyrics();
+
+audio.ontimeupdate = () => {
+    let t = audio.currentTime;
+    for (let i = 0; i < lyricsData.length; i++) {
+        const next = lyricsData[i+1] ? lyricsData[i+1].time : 99999;
+        const line = document.getElementById("line"+i);
+
+        if (t >= lyricsData[i].time && t < next) {
+            line.classList.add("highlight");
+            line.scrollIntoView({ behavior:"smooth", block:"center" });
+        } else {
+            line.classList.remove("highlight");
+        }
+    }
+};
+</script>
+
+</body>
+</html>

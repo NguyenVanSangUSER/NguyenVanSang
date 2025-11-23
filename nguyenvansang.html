@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        :root{
+            --neon-1: #00eaff;
+            --neon-2: #b400ff;
+            --neon-3: #00ff88;
+        }
+        
+        body { 
+            margin: 0; 
+            padding: 0; 
+            overflow: hidden; 
+            font-family: Arial, sans-serif; 
+            color: white; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            background: #000; 
+            cursor: url('cursor.png') 16 16, auto; 
+        }
+
+        #bgVideo { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+            z-index: -5; 
+            pointer-events: none; 
+        }
+        #lightning, #skyCanvas, #effect, #waveCanvas { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            pointer-events: none; 
+        }
+        #lightning { z-index: -4; } 
+        #skyCanvas { z-index: -3; } 
+        #effect { z-index: 2; }
+        #waveCanvas { 
+            height: 140px; 
+            top: auto; 
+            bottom: 0; 
+            z-index: 1; 
+            mix-blend-mode: screen; 
+        }
+        
+        #vietnamFlagCanvas {
+            position: fixed;
+            top: 40px; 
+            left: 20px;
+            z-index: 9999;
+            box-shadow: 0 0 15px rgba(238, 28, 37, 0.8), 0 0 30px rgba(255, 255, 0, 0.4);
+            animation: flagCanvasGlow 3s infinite alternate;
+        }
+        @keyframes flagCanvasGlow {
+            0% { box-shadow: 0 0 15px rgba(238, 28, 37, 0.8), 0 0 30px rgba(255, 255, 0, 0.4); }
+            50% { box-shadow: 0 0 25px rgba(255, 100, 100, 1), 0 0 40px rgba(255, 255, 100, 0.7); }
+            100% { box-shadow: 0 0 15px rgba(238, 28, 37, 0.8), 0 0 30px rgba(255, 255, 0, 0.4); }
+        }
+
+        .view-counter { 
+            position: fixed; 
+            top: 20px; 
+            right: 20px; 
+            z-index: 99999; 
+            text-align: right; 
+            font-size: 12px; 
+            color: rgba(255, 255, 255, 0.5); 
+        }
+        .view-counter a { color: rgba(255, 255, 255, 0.3); text-decoration: none; pointer-events: none; }
+
+        .fps-counter { 
+            position: fixed; 
+            top: 90px; 
+            right: 20px; 
+            font-size: 26px; 
+            font-weight: bold; 
+            color: red; 
+            z-index: 9997; 
+            text-shadow: 0 0 3px rgba(255,255,255,0.5); 
+        }
+        
+        #introScreen { 
+            position: fixed; 
+            inset: 0; 
+            background: rgba(0,0,0,0.88); 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            flex-direction: column; 
+            z-index: 99999; 
+            cursor: pointer; 
+            transition: 0.4s ease; 
+        }
+        .intro-title { 
+            font-size: 36px; 
+            font-weight: 700; 
+            color: var(--neon-1); 
+            text-align: center; 
+            text-shadow: 0 0 10px var(--neon-1); 
+            animation: introGlow 3s ease-in-out infinite alternate; 
+        }
+        .card { 
+            width: 420px; 
+            padding: 28px; 
+            border-radius: 22px; 
+            background: rgba(0, 0, 0, 0.20); 
+            backdrop-filter: blur(25px); 
+            -webkit-backdrop-filter: blur(25px); 
+            border: 1px solid rgba(0,255,255,0.12); 
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.2); 
+            text-align: center; 
+            z-index: 3; 
+            position: relative; 
+        }
+        .avatar-wrapper { 
+            width: 150px; 
+            height: 150px; 
+            margin: auto; 
+            padding: 6px; 
+            border-radius: 50%; 
+            background: linear-gradient(45deg,var(--neon-1),var(--neon-2)); 
+            box-shadow: 0 0 25px var(--neon-1); 
+        }
+        .avatar { 
+            width: 100%; 
+            height: 100%; 
+            border-radius: 50%; 
+            background-size: cover; 
+            background-position: center; 
+        }
+        .name { 
+            font-size: 26px; 
+            margin-top: 14px; 
+            color: var(--neon-1); 
+            text-shadow: 0 0 10px var(--neon-1); 
+        }
+        .social-icons { 
+            margin-top: 18px; 
+            display: flex; 
+            justify-content: center; 
+            gap: 14px; 
+        }
+        .icon { 
+            width: 50px; 
+            height: 50px; 
+            background: rgba(255,255,255,0.06); 
+            border-radius: 14px; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            transition: 0.25s; 
+        }
+        .icon:hover { 
+            transform: scale(1.14) rotate(6deg); 
+            box-shadow: 0 0 26px var(--neon-1); 
+        }
+        .icon img { width: 28px; }
+        .music-box { 
+            margin-top: 18px; 
+            background: rgba(255,255,255,0.02); 
+            padding: 12px; 
+            border-radius: 12px; 
+        }
+        #lyricBox { 
+            margin-top: 16px; 
+            font-size: 18px; 
+            color: #cffff9; 
+            min-height: 46px; 
+            text-shadow: 0 0 10px rgba(0,255,255,0.08); 
+        }
+        .k-line .char { opacity: 0.12; transition: opacity 0.06s; }
+        .k-line .char.visible { opacity: 1; color: #fff; text-shadow: 0 0 12px rgba(0,255,255,0.9); }
+        .credit { 
+            position: fixed; 
+            bottom: 5px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            color: var(--neon-1); 
+            font-weight: bold; 
+            z-index: 4; 
+        }
+        
+        #openFormButton {
+            position: fixed;
+            bottom: 30px; 
+            right: 30px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            transition: background-color 0.3s, transform 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        #openFormButton:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+
+        .modal {
+            display: none; 
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            animation: fadeInModal 0.3s ease-out;
+        }
+
+        .modal-content {
+            background-color: rgba(0, 0, 0, 0.6);
+            margin: 8% auto; 
+            padding: 25px; 
+            border: 2px solid var(--neon-1);
+            width: 90%;
+            max-width: 400px; 
+            height: auto; 
+            border-radius: 18px;
+            position: relative;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.5), inset 0 0 8px rgba(0, 255, 255, 0.2);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            color: #e0f7fa;
+            animation: slideInModal 0.4s ease-out forwards;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px; 
+        }
+
+        .form-title {
+            color: var(--neon-1);
+            text-shadow: 0 0 15px var(--neon-1);
+            font-size: 2.2em;
+            margin-bottom: 25px;
+            letter-spacing: 1.5px;
+            animation: pulseTitle 2s infinite alternate; 
+        }
+
+        .form-group {
+            width: 100%;
+            position: relative;
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+            color: #cffff9;
+            text-shadow: 0 0 5px rgba(0,255,255,0.4);
+        }
+        .form-group input,
+        .form-group textarea {
+            width: calc(100% - 22px); 
+            padding: 11px;
+            background-color: rgba(0, 0, 0, 0.5); 
+            border: 2px solid var(--neon-3); 
+            border-radius: 8px;
+            color: #e0f7fa;
+            font-size: 1em;
+            outline: none;
+            box-shadow: 0 0 8px rgba(0, 255, 136, 0.2); 
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: var(--neon-1);
+            box-shadow: 0 0 20px rgba(0, 234, 255, 0.6);
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+            max-height: 200px;
+        }
+        .form-group input[readonly] {
+            background-color: rgba(0, 0, 0, 0.7);
+            color: rgba(255, 255, 255, 0.6);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .form-group #charCount {
+            color: var(--neon-3);
+            font-weight: bold;
+        }
+
+        /* --- Tinh chỉnh riêng cho ô Email nhận (Đến:) --- */
+        .form-group #toEmail {
+            width: fit-content; 
+            min-width: 250px; 
+            text-align: center; 
+            margin: 0 auto; 
+            display: block; 
+        }
+        /* ------------------------------------------------ */
+
+        .form-actions {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+            position: relative;
+            width: 100%;
+        }
+        .neon-button {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-shadow: 0 0 5px rgba(255,255,255,0.7);
+        }
+        .submit-button {
+            background-color: #e91e63;
+            color: white;
+            box-shadow: 0 0 15px rgba(233, 30, 99, 0.6);
+        }
+        .submit-button:hover {
+            background-color: #d81b60;
+            box-shadow: 0 0 25px rgba(233, 30, 99, 0.9);
+            transform: translateY(-2px);
+        }
+        .cancel-button {
+            background-color: #673ab7;
+            color: white;
+            box-shadow: 0 0 15px rgba(103, 58, 183, 0.6);
+        }
+        .cancel-button:hover {
+            background-color: #5e35b1;
+            box-shadow: 0 0 25px rgba(103, 58, 183, 0.9);
+            transform: translateY(-2px);
+        }
+
+        .close-button {
+            color: var(--neon-1);
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 38px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+            padding: 0 5px;
+            text-shadow: 0 0 15px var(--neon-1);
+            transition: color 0.3s, text-shadow 0.3s;
+            z-index: 10;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: white;
+            text-shadow: 0 0 20px white;
+            text-decoration: none;
+        }
+
+        @keyframes pulseTitle {
+            0% { text-shadow: 0 0 15px var(--neon-1); }
+            50% { text-shadow: 0 0 30px var(--neon-2); }
+            100% { text-shadow: 0 0 15px var(--neon-1); }
+        }
+        @keyframes fadeInModal {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideInModal {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes introGlow { 
+            0% { text-shadow: 0 0 8px #00eaff; } 
+            100% { text-shadow: 0 0 30px #b400ff; } 
+        }
+        @keyframes fadeIn { 
+            0% { opacity: 0.6; } 
+            100% { opacity: 1; } 
+        }
+    </style>
+    
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Nguyễn Văn Sang</title> 
+</head>
+<body>
+    
+    <div class="view-counter">
+        <script type="text/javascript" src="https://www.free-counters.org/count/iz0w"></script>
+        <br>
+        <a href='https://www.acadoo.de/'>Acadoo Ghostwriter</a> 
+        <script type='text/javascript' src='https://whomania.com/ctr?id=0e306fe8062d7df8c3b4b3e0737c179019106c3a'></script>
+    </div>
+    
+    <canvas id="vietnamFlagCanvas" width="120" height="80"></canvas>
+
+    <div id="fpsCounter" class="fps-counter">
+        <span class="fps-value">0 FPS</span>
+    </div>
+
+    <canvas id="lightning"></canvas> 
+    <video id="bgVideo" autoplay loop muted playsinline>
+        <source src="bgVideo.mp4" type="video/mp4">
+    </video>
+    <div class="pyro">
+        <div class="before"></div>
+        <div class="after"></div>
+    </div>
+    <canvas id="skyCanvas"></canvas>
+    <canvas id="effect"></canvas> 
+    <canvas id="waveCanvas"></canvas> 
+    
+    <div id="introScreen" role="button" tabindex="0">
+        <h1 class="intro-title">Welcome to the website </h1>
+    </div>
+
+    <div class="card">
+        <div class="avatar-wrapper neonPulse" id="avatarWrapper">
+            <div class="avatar" id="avatarBox"></div>
+        </div>
+
+        <h2 class="name neonPulse" id="displayName">Nguyễn Văn Sang</h2>
+
+        <div class="social-icons">
+            <a class="icon" href="https://www.facebook.com/nguyenvansangmedia178" target="_blank">
+                <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="fb">
+            </a>
+            <a class="icon" href="https://www.instagram.com/nguyenvansangmedia178" target="_blank">
+                <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="ig">
+            </a>
+            <a class="icon" href="https://t.me/nguyenvansangmedia" target="_blank" rel="noreferrer">
+                <img src="https://cdn-icons-png.flaticon.com/512/2111/2111646.png" alt="tg">
+            </a>
+            <a class="icon" href="https://www.tiktok.com/@roikhinaotaogiau" target="_blank" rel="noreferrer">
+                <img src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png" alt="tt">
+            </a>
+        </div>
+
+        <div class="music-box">
+            <b>Nhạc nền</b><br><br> 
+            <audio id="musicPlayer" controls></audio>
+        </div>
+
+        <div id="lyricBox"></div>
+    </div>
+
+    <div class="credit">Design by Nguyễn Văn Sang</div>
+    
+    <button id="openFormButton" title="Liên hệ qua Email">
+        <i class="fa fa-envelope"></i>
+        <span>LIÊN HỆ ADMIN</span>
+    </button>
+
+    <div id="contactModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeFormButton">&times;</span>
+            
+            <h2 class="form-title">Support Ticket</h2>
+
+            <form action="https://formsubmit.co/el/silure" method="POST" class="neon-form">
+                <div class="form-group">
+                    <label for="userEmail">Email của bạn:</label>
+                    <input type="email" name="email" id="userEmail" placeholder="Nhập email của bạn..." required>
+                </div>
+
+                <div class="form-group">
+                    <label for="toEmail">Đến:</label>
+                    <input type="email" name="_to" id="toEmail" value="nguyenvansangmedia@gmail.com" readonly>
+                </div>
+                
+                <div class="form-group">
+                    <label for="subject">Tiêu đề:</label>
+                    <input type="text" name="subject" id="subject" placeholder="Nhập tiêu đề..." required>
+                </div>
+
+                <div class="form-group">
+                    <label for="message">Nội dung: <span id="charCount">0</span>/200</label>
+                    <textarea name="message" id="message" maxlength="200" placeholder="Nhập nội dung..." rows="4" required></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="neon-button submit-button">Gửi</button>
+                    <button type="button" class="neon-button cancel-button" id="formCancelButton">Hủy</button>
+                </div>
+
+                <input type="hidden" name="_captcha" value="false">
+                <input type="hidden" name="_next" value="https://nguyenvansang.com/thank-you.html"> 
+            </form>
+            
+            <p>Đảm bảo thông tin chính xác trước khi gửi.</p>
+        </div>
+    </div>
+    
+    <script>
+        const modal = document.getElementById("contactModal");
+        const openBtn = document.getElementById("openFormButton");
+        const closeBtn = document.getElementById("closeFormButton");
+
+        if(openBtn) {
+            openBtn.onclick = function() {
+                modal.style.display = "block";
+            }
+        }
+
+        if(closeBtn) {
+            closeBtn.onclick = function() {
+                modal.style.display = "none";
+            }
+        }
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const charCount = document.getElementById('charCount');
+            const messageTextarea = document.getElementById('message');
+            const formCancelButton = document.getElementById('formCancelButton');
+            const contactModal = document.getElementById('contactModal');
+
+            if (messageTextarea && charCount) {
+                messageTextarea.addEventListener('input', function() {
+                    charCount.textContent = this.value.length;
+                });
+            }
+
+            if (formCancelButton && contactModal) {
+                formCancelButton.addEventListener('click', function() {
+                    contactModal.style.display = 'none'; 
+                    const neonForm = document.querySelector('.neon-form');
+                    if (neonForm) {
+                        neonForm.reset(); 
+                        if (charCount) charCount.textContent = '0'; 
+                    }
+                });
+            }
+        });
+    </script>
+
+
+    <script>
+        const canvasL = document.getElementById("lightning");
+        const ctxL = canvasL.getContext("2d");
+        function sizeL() { canvasL.width = innerWidth; canvasL.height = innerHeight; }
+        sizeL(); window.onresize = sizeL;
+        function rand(min, max) { return Math.random() * (max - min) + min; }
+        function createBolt() {
+            let x = rand(canvasL.width * 0.2, canvasL.width * 0.8);
+            let segments = []; let count = rand(15, 30);
+            for (let i = 0; i < count; i++) segments.push({ x: x + rand(-40, 40), y: (i / count) * canvasL.height });
+            return segments;
+        }
+        let bolts = [];
+        setInterval(() => { bolts.push(createBolt()); setTimeout(() => bolts.shift(), 200); }, 250);
+        function drawL() {
+            ctxL.clearRect(0, 0, canvasL.width, canvasL.height);
+            ctxL.lineWidth = 2; ctxL.strokeStyle = "rgba(0, 170, 255, 1)";
+            ctxL.shadowBlur = 25; ctxL.shadowColor = "cyan";
+            bolts.forEach(bolt => {
+                ctxL.beginPath();
+                for (let i = 0; i < bolt.length - 1; i++) { ctxL.moveTo(bolt[i].x, bolt[i].y); ctxL.lineTo(bolt[i + 1].x, bolt[i + 1].y); }
+                ctxL.stroke();
+            });
+            requestAnimationFrame(drawL);
+        }
+        drawL();
+
+        function updateFPS() {
+            let fpsElement = document.querySelector("#fpsCounter .fps-value");
+            let lastFrameTime = performance.now(); let frameCount = 0;
+            function refreshFPS() {
+                let now = performance.now(); frameCount++;
+                if (now - lastFrameTime >= 1000) {
+                    let fps = Math.round(frameCount / ((now - lastFrameTime) / 1000));
+                    fpsElement.textContent = `${fps} FPS`;
+                    lastFrameTime = now; frameCount = 0;
+                }
+                requestAnimationFrame(refreshFPS);
+            }
+            refreshFPS();
+        }
+        document.addEventListener("DOMContentLoaded", updateFPS);
+
+        const flagCanvas = document.getElementById('vietnamFlagCanvas');
+        const flagCtx = flagCanvas.getContext('2d');
+        const flagW = flagCanvas.width;
+        const flagH = flagCanvas.height;
+        const flagAmp = 5;
+        const flagSpeed = 0.05;
+        let flagTime = 0;
+
+        function drawStar(ctx, cx, cy, spikes, outerRadius, innerRadius) {
+            let rot = Math.PI / 2 * 3;
+            let x = cx;
+            let y = cy;
+            let step = Math.PI / spikes;
+
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - outerRadius);
+            for (let i = 0; i < spikes; i++) {
+                x = cx + Math.cos(rot) * outerRadius;
+                y = cy + Math.sin(rot) * outerRadius;
+                ctx.lineTo(x, y);
+                rot += step;
+
+                x = cx + Math.cos(rot) * innerRadius;
+                y = cy + Math.sin(rot) * innerRadius;
+                ctx.lineTo(x, y);
+                rot += step;
+            }
+            ctx.lineTo(cx, cy - outerRadius);
+            ctx.closePath();
+        }
+
+        function drawFlag() {
+            flagCtx.clearRect(0, 0, flagW, flagH);
+
+            flagCtx.fillStyle = '#ee1c25'; 
+            flagCtx.fillRect(0, 0, flagW, flagH);
+
+            flagCtx.fillStyle = '#ffff00';
+            
+            flagCtx.save();
+            flagCtx.translate(flagW / 2, flagH / 2);
+            
+            const waveX = Math.sin(flagTime * flagSpeed) * flagAmp * 1.5; 
+            const waveY = Math.cos(flagTime * flagSpeed * 0.7) * flagAmp;
+
+            flagCtx.transform(
+                1, 
+                0.005, 
+                0.005, 
+                1, 
+                waveX, 
+                waveY 
+            );
+            
+            drawStar(flagCtx, 0, 0, 5, flagH * 0.35, flagH * 0.15);
+            flagCtx.fill();
+            flagCtx.restore();
+
+            flagTime++;
+            requestAnimationFrame(drawFlag);
+        }
+        drawFlag();
+
+
+        (async function init(){
+            const intro = document.getElementById("introScreen");
+            const musicPlayer = document.getElementById("musicPlayer");
+            const avatarBox = document.getElementById("avatarBox");
+            
+            const avatarList = ["avatar.jpg", "avatar.png", "image.jpg"];
+            const musicList = ["music.mp3", "song.mp3"];
+            
+            intro.addEventListener("click", async () => {
+                intro.style.opacity = "0";
+                setTimeout(() => { if (intro) intro.remove(); }, 420);
+                try { 
+                    if (audioCtx && audioCtx.state === 'suspended') {
+                        audioCtx.resume();
+                    }
+                    await musicPlayer.play(); 
+                    initVisualizer(); 
+                } catch(e){ console.log('Chưa phát nhạc được:', e); }
+            });
+
+            async function loadAvatar(){
+                for (let file of avatarList) {
+                    let img = new Image(); img.src = file;
+                    avatarBox.style.backgroundImage = `url('${file}')`; 
+                    break; 
+                }
+            }
+            loadAvatar();
+
+            if(musicList.length > 0) musicPlayer.src = musicList[0];
+
+            const cvs = document.getElementById("effect"), c = cvs.getContext("2d");
+            function resizeCanvas(){ cvs.width = innerWidth; cvs.height = innerHeight; }
+            window.addEventListener('resize', resizeCanvas); resizeCanvas();
+            const icons = ["🍀", "💖", "❤️", "💚", "💗"];
+            const drops = Array.from({length: 50}, () => ({
+                x: Math.random() * window.innerWidth, y: Math.random() * window.innerHeight,
+                size: Math.random() * 20 + 10, speed: Math.random() * 2 + 1,
+                char: icons[Math.floor(Math.random() * icons.length)]
+            }));
+
+            function drawRain() {
+                c.clearRect(0, 0, cvs.width, cvs.height);
+                drops.forEach(s => {
+                    c.font = s.size + "px Arial"; c.fillText(s.char, s.x, s.y);
+                    s.y += s.speed;
+                    if (s.y > cvs.height) s.y = -20;
+                });
+                requestAnimationFrame(drawRain);
+            }
+            drawRain();
+
+            let audioCtx, analyser, dataArray, source;
+            const waveCanvas = document.getElementById('waveCanvas');
+            const wctx = waveCanvas.getContext('2d');
+            
+            function resizeWaveCanvas() {
+                waveCanvas.width = window.innerWidth; 
+                waveCanvas.height = 140; 
+            }
+            window.addEventListener('resize', resizeWaveCanvas);
+            resizeWaveCanvas();
+
+            function initVisualizer(){
+                if(audioCtx) return;
+                try {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    source = audioCtx.createMediaElementSource(musicPlayer);
+                    analyser = audioCtx.createAnalyser();
+                    analyser.fftSize = 256;
+                    source.connect(analyser);
+                    analyser.connect(audioCtx.destination);
+                    dataArray = new Uint8Array(analyser.frequencyBinCount);
+                    drawWave();
+                } catch (e) {
+                    console.error("Lỗi khởi tạo AudioContext:", e);
+                }
+            }
+
+            function drawWave(){
+                requestAnimationFrame(drawWave);
+                if (!analyser || !dataArray) return;
+                
+                analyser.getByteFrequencyData(dataArray);
+                wctx.clearRect(0, 0, waveCanvas.width, waveCanvas.height);
+                
+                const bufferLength = analyser.frequencyBinCount;
+                const barWidth = (waveCanvas.width / bufferLength) * 1.5; 
+                let barHeight;
+                let x = 0;
+
+                for(let i = 0; i < bufferLength; i++) {
+                    barHeight = dataArray[i] / 2;
+                    wctx.fillStyle = `rgb(${barHeight+50}, 50, 200)`;
+                    wctx.fillRect(x, waveCanvas.height - barHeight, barWidth, barHeight);
+                    x += barWidth + 1;
+                }
+            }
+
+        })();
+    </script>
+
+</body>
+</html>
